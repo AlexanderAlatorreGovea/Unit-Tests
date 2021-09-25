@@ -8,17 +8,18 @@
 class Person {
   firstName;
   lastName;
-  middleName;
-
+  middlename;
+  fullNamePieces;
   constructor(data = {}) {
     this.firstName = data.firstName || "";
     this.lastName = data.lastName || "";
-    this.middleName = data.middleName || "";
+    this.middlename = data.middlename || "";
+    this.fullNamePieces = [data.firstName, data.middlename, data.lastName];
   }
 
   get fullName() {
-    if (this.middleName.length > 0) {
-      return `${this.firstName} ${this.middleName[0]} ${this.lastName}`;
+    if (this.middlename.length > 0) {
+      return `${this.firstName} ${this.middlename[0]} ${this.lastName}`;
     }
 
     return `${this.firstName} ${this.lastName}`;
@@ -36,6 +37,10 @@ class Person {
     } else {
       return `Scrub skipping tests in his best friend'Îs ride`;
     }
+  }
+
+  getUserById(id) {
+    return fetch(`https://jsonplaceholder.typicode.com/users/${id}`);
   }
 }
 
@@ -60,9 +65,9 @@ describe(`${Person.name} Class`, () => {
       //assert
       expect(model.firstName).toBe("");
     });
-    it("first middleName defaults to empty string", () => {
+    it("first middlename defaults to empty string", () => {
       //assert
-      expect(model.middleName).toBe("");
+      expect(model.middlename).toBe("");
     });
     it("first lastName defaults to empty string", () => {
       //assert
@@ -80,13 +85,13 @@ describe(`${Person.name} Class`, () => {
 
     it("middle inital wehn middle name is defined with first and last", () => {
       //arrange
-      model.middleName = "alatorre";
+      model.middlename = "alatorre";
 
       //act
       const result = model.fullName;
 
       //audit
-      const { firstName: fn, lastName: ln, middleName: mn } = model;
+      const { firstName: fn, lastName: ln, middlename: mn } = model;
 
       //assert
       expect(result).toBe(`${fn} ${mn[0]} ${ln}`);
@@ -94,13 +99,13 @@ describe(`${Person.name} Class`, () => {
 
     it("when NO middlename return just first and last", () => {
       //arrange
-      model.middleName = "";
+      model.middlename = "";
 
       //act
       const result = model.fullName;
 
       //audit
-      const { firstName: fn, lastName: ln, middleName: mn } = model;
+      const { firstName: fn, lastName: ln, middlename: mn } = model;
 
       //assert
       expect(result).toBe(`${fn} ${ln}`);
@@ -144,6 +149,74 @@ describe(`${Person.name} Class`, () => {
 
       //assert
       expect(result).toBe(expected);
+    });
+  });
+
+  describe(`getUserById`, () => {
+    let mockPersonService;
+    let model;
+
+    beforeEach(() => {
+      const data = {
+        firstName: "alex",
+        lastName: "govea",
+        middlename: "alatorre",
+        id: 1,
+      };
+      mockPersonService = {
+        lastId: null,
+        user: {},
+        getUserById(id) {
+          this.lastId = id;
+          return this.user;
+        },
+      };
+      model = new Person(data, mockPersonService);
+    });
+
+    it("gets user by id", async () => {
+      //arrange
+      mockPersonService.lastName = null;
+      mockPersonService = {
+        firstName: "alex",
+        lastName: "govea",
+        middlename: "alatorre",
+        id: 1,
+      };
+      //act
+
+      const result = await model.getUserById();
+      //assert
+      expect(mockPersonService.id).toBe(1);
+    });
+  });
+});
+
+describe(`${Person.name} Class`, () => {
+  it("exists", () => {
+    expect(Person).toBeDefined();
+  });
+
+  let model;
+  beforeEach(() => {
+    model = new Person();
+  });
+
+  describe("additional matchers examples", () => {
+    it("gets full name pices", () => {
+      //arrange
+      const firstName = "alex";
+      const middlename = "alatorre";
+      const lastName = "govea";
+      //act
+      model = new Person({ firstName, middlename, lastName });
+
+      //
+      expect(model.fullNamePieces).toEqual([
+        firstName,
+        middlename,
+        lastName,
+      ]);
     });
   });
 });
